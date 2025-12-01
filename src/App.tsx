@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-// import init, {convert_to_grayscale} from '../wasm-lib/pkg'
+import init from '../wasm-lib/pkg';
 import styles from './App.module.css';
 import { Button } from './components/Button/Button';
 
@@ -8,16 +8,37 @@ function App() {
 
   // WASMの読み込み
   useEffect(() => {
-    // TODO: ここで init() を実行してWASMを初期化してください
-    // 非同期関数ですが、useEffect内なので .then() を使うか、
-    // 即時実行関数(IIFE)で await してもOKです。
-    // 面倒なら単に init(); と書くだけでも動きます（非同期で読み込まれます）
+    init();
     console.log('WASM Initialized');
   }, []);
 
-  // 画像が選択されたときの処理（次回実装します）
+  // 画像が選択されたときの処理
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('File selected');
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    const reader = new FileReader();
+
+    reader.onload = (evt) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0);
+        }
+      };
+      if (evt.target?.result) {
+        img.src = evt.target.result as string;
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   // 白黒変換ボタンが押されたときの処理（次回実装します）
@@ -32,9 +53,9 @@ function App() {
 
         <div className={styles.card}>
           {/* 画像選択ボタン */}
-          {/* TODO: ここに type="file" の input タグを書いてください */}
-          {/* accept="image/*" をつけると画像だけ選べるようになります */}
-          <div style={{ marginBottom: '1rem' }}>{/* ここにinputタグ */}</div>
+          <div style={{ marginBottom: '1rem' }}>
+            <input type="file" accept="image/*" onChange={handleFileChange}></input>
+          </div>
 
           {/* 画像を表示するキャンバス */}
           <canvas
