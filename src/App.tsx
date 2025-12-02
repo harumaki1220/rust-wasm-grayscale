@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import init from '../wasm-lib/pkg';
+import init, { convert_to_grayscale } from '../wasm-lib/pkg';
 import styles from './App.module.css';
 import { Button } from './components/Button/Button';
 
@@ -41,9 +41,26 @@ function App() {
     reader.readAsDataURL(file);
   };
 
-  // 白黒変換ボタンが押されたときの処理（次回実装します）
+  // 白黒変換ボタンが押されたときの処理
   const handleConvert = () => {
-    console.log('Convert clicked');
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const width = canvas.width;
+    const height = canvas.height;
+
+    const imageData = ctx.getImageData(0, 0, width, height);
+
+    const inputData = new Uint8Array(imageData.data.buffer);
+
+    convert_to_grayscale(inputData, width, height);
+
+    const newImageData = new ImageData(new Uint8ClampedArray(inputData.buffer), width, height);
+
+    ctx.putImageData(newImageData, 0, 0);
   };
 
   return (
