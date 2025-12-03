@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import init, { convert_to_grayscale } from '../wasm-lib/pkg';
-import styles from './App.module.css';
 import { Button } from './components/Button/Button';
 
 function App() {
@@ -64,23 +63,31 @@ function App() {
   };
 
   return (
-    <div className={styles.container}>
-      <header className={styles.header}>
-        <h1>Rust WASM Grayscale Converter</h1>
+    <div className="flex min-h-screen flex-col items-center justify-center text-center bg-gray-900 text-white">
+      <header className="flex flex-col gap-6">
+        <h1 className="text-4xl font-bold">Rust WASM Grayscale Converter</h1>
 
-        <div className={styles.card}>
-          {/* 画像選択ボタン */}
-          <div style={{ marginBottom: '1rem' }}>
-            <input type="file" accept="image/*" onChange={handleFileChange}></input>
+        <div className="p-8 border border-gray-600 rounded-xl bg-gray-800 shadow-lg">
+          <div className="mb-6">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="block w-full text-sm text-gray-400
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-full file:border-0
+                file:text-sm file:font-semibold
+                file:bg-violet-50 file:text-violet-700
+                hover:file:bg-violet-100"
+            />
           </div>
 
-          {/* 画像を表示するキャンバス */}
           <canvas
             ref={canvasRef}
-            style={{ border: '1px solid #666', maxWidth: '100%', height: 'auto' }}
+            className="border border-gray-500 max-w-full h-auto rounded-md mx-auto"
           />
 
-          <div style={{ marginTop: '1rem' }}>
+          <div className="mt-6">
             <Button onClick={handleConvert}>白黒にする！</Button>
           </div>
         </div>
