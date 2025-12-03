@@ -62,6 +62,19 @@ function App() {
     ctx.putImageData(newImageData, 0, 0);
   };
 
+  // 画像をダウンロードする処理
+  const handleDownload = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const imageURL = canvas.toDataURL('image/png');
+
+    const link = document.createElement('a');
+    link.href = imageURL;
+    link.download = 'filtered_image.png';
+    link.click();
+  };
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center text-center bg-gray-900 text-white">
       <header className="flex flex-col gap-6">
@@ -89,6 +102,21 @@ function App() {
 
           <div className="mt-6">
             <Button onClick={handleConvert}>白黒にする！</Button>
+            <button
+              onClick={handleDownload}
+              className="
+                rounded-lg border border-transparent 
+                px-5 py-2.5 
+                text-base font-medium 
+                bg-emerald-600 text-white 
+                cursor-pointer 
+                transition-colors duration-250
+                hover:bg-emerald-700
+                focus:outline-none focus:ring-2 focus:ring-emerald-500
+              "
+            >
+              画像を保存
+            </button>
           </div>
         </div>
       </header>
