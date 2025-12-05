@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import init, { convert_to_grayscale, invert_colors } from '../wasm-lib/pkg';
+import init, { apply_sepia, convert_to_grayscale, invert_colors } from '../wasm-lib/pkg';
 import { Button } from './components/Button/Button';
 
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [filterType, setFilterType] = useState<'grayscale' | 'invert'>('grayscale');
+  const [filterType, setFilterType] = useState<'grayscale' | 'invert' | 'sepia'>('grayscale');
 
   // WASMの読み込み
   useEffect(() => {
@@ -58,6 +58,9 @@ function App() {
         break;
       case 'invert':
         invert_colors(inputData, width, height);
+        break;
+      case 'sepia':
+        apply_sepia(inputData, width, height);
         break;
     }
     const newImageData = new ImageData(new Uint8ClampedArray(inputData.buffer), width, height);
@@ -121,7 +124,17 @@ function App() {
                 onChange={() => setFilterType('invert')}
                 className="cursor-pointer accent-indigo-500"
               />
-              反転
+              色反転
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer hover:text-indigo-400 transition-colors">
+              <input
+                type="radio"
+                name="filter"
+                checked={filterType === 'sepia'}
+                onChange={() => setFilterType('sepia')}
+                className="cursor-pointer accent-indigo-500"
+              />
+              セピア
             </label>
           </div>
 
