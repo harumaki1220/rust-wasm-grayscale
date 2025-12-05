@@ -1,9 +1,10 @@
-import { useEffect, useRef } from 'react';
-import init, { convert_to_grayscale } from '../wasm-lib/pkg';
+import { useEffect, useRef, useState } from 'react';
+import init, { convert_to_grayscale, invert_colors } from '../wasm-lib/pkg';
 import { Button } from './components/Button/Button';
 
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [filterType, setFilterType] = useState<'grayscale' | 'invert'>('grayscale');
 
   // WASMの読み込み
   useEffect(() => {
@@ -40,25 +41,26 @@ function App() {
     reader.readAsDataURL(file);
   };
 
-  // 白黒変換ボタンが押されたときの処理
   const handleConvert = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     const width = canvas.width;
     const height = canvas.height;
-
     const imageData = ctx.getImageData(0, 0, width, height);
-
     const inputData = new Uint8Array(imageData.data.buffer);
 
-    convert_to_grayscale(inputData, width, height);
-
+    switch (filterType) {
+      case 'grayscale':
+        convert_to_grayscale(inputData, width, height);
+        break;
+      case 'invert':
+        invert_colors(inputData, width, height);
+        break;
+    }
     const newImageData = new ImageData(new Uint8ClampedArray(inputData.buffer), width, height);
-
     ctx.putImageData(newImageData, 0, 0);
   };
 
@@ -99,6 +101,29 @@ function App() {
             ref={canvasRef}
             className="border border-gray-500 max-w-full h-auto rounded-md mx-auto"
           />
+
+          <div className="mt-4 flex justify-center gap-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
+            <label className="flex items-center gap-2 cursor-pointer hover:text-indigo-400 transition-colors">
+              <input
+                type="radio"
+                name="filter"
+                checked={filterType === 'grayscale'}
+                onChange={() => setFilterType('grayscale')}
+                className="cursor-pointer accent-indigo-500"
+              />
+              白黒
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer hover:text-indigo-400 transition-colors">
+              <input
+                type="radio"
+                name="filter"
+                checked={filterType === 'invert'}
+                onChange={() => setFilterType('invert')}
+                className="cursor-pointer accent-indigo-500"
+              />
+              反転
+            </label>
+          </div>
 
           <div className="mt-6">
             <Button onClick={handleConvert}>白黒にする！</Button>
