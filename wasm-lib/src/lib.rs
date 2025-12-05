@@ -23,3 +23,20 @@ pub fn invert_colors(data: &mut [u8], _width: u32, _height: u32) {
         pixel[2] = 255 - pixel[2];
     }
 }
+
+#[wasm_bindgen]
+pub fn apply_sepia(data: &mut [u8], _width: u32, _height: u32) {
+    for pixel in data.chunks_mut(4) {
+        let r = pixel[0] as f32;
+        let g = pixel[1] as f32;
+        let b = pixel[2] as f32;
+
+        let new_r = r * 0.393 + g * 0.769 + b * 0.189;
+        let new_g = r * 0.349 + g * 0.686 + b * 0.168;
+        let new_b = r * 0.272 + g * 0.534 + b * 0.131;
+
+        pixel[0] = new_r.min(255.0) as u8;
+        pixel[1] = new_g.min(255.0) as u8;
+        pixel[2] = new_b.min(255.0) as u8;
+    }
+}
