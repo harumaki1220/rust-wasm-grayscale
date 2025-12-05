@@ -14,3 +14,12 @@ pub fn convert_to_grayscale(data: &mut [u8], _width: u32, _height: u32) {
         pixel[2] = gray; // B
     }
 }
+
+#[wasm_bindgen]
+pub fn invert_colors(data: &mut [u8], _width: u32, _height: u32) {
+    for pixel in data.chunks_mut(4) {
+        pixel[0] = 255 - pixel[0];
+        pixel[1] = 255 - pixel[1];
+        pixel[2] = 255 - pixel[2];
+    }
+}
