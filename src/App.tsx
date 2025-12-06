@@ -139,7 +139,7 @@ function App() {
           </div>
 
           <div className="mt-6">
-            <Button onClick={handleConvert}>白黒にする！</Button>
+            <Button onClick={handleConvert}>フィルターを適用</Button>
             <button
               onClick={handleDownload}
               className="
