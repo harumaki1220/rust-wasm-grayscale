@@ -2,9 +2,25 @@ import { useEffect, useRef, useState } from 'react';
 import init, { apply_sepia, convert_to_grayscale, invert_colors } from '../wasm-lib/pkg';
 import { Button } from './components/Button/Button';
 
+// JavaScript版白黒変換
+const convertToGrayscaleJS = (data: Uint8Array) => {
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+
+    const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+
+    data[i] = gray;
+    data[i + 1] = gray;
+    data[i + 2] = gray;
+  }
+};
+
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [filterType, setFilterType] = useState<'grayscale' | 'invert' | 'sepia'>('grayscale');
+  const [benchmark, setBenchmark] = useState<{ wasm: number; js: number } | null>(null);
 
   // WASMの読み込み
   useEffect(() => {
@@ -50,24 +66,40 @@ function App() {
     const width = canvas.width;
     const height = canvas.height;
     const imageData = ctx.getImageData(0, 0, width, height);
-    const inputData = new Uint8Array(imageData.data.buffer);
+
+    const inputDataWasm = new Uint8Array(imageData.data);
+    const startWasm = performance.now();
 
     switch (filterType) {
       case 'grayscale':
-        convert_to_grayscale(inputData, width, height);
+        convert_to_grayscale(inputDataWasm, width, height);
         break;
       case 'invert':
-        invert_colors(inputData, width, height);
+        invert_colors(inputDataWasm, width, height);
         break;
       case 'sepia':
-        apply_sepia(inputData, width, height);
+        apply_sepia(inputDataWasm, width, height);
         break;
     }
-    const newImageData = new ImageData(new Uint8ClampedArray(inputData.buffer), width, height);
+    const endWasm = performance.now();
+    const timeWasm = endWasm - startWasm;
+
+    const inputDataJS = new Uint8Array(imageData.data);
+    let timeJS = 0;
+
+    if (filterType === 'grayscale') {
+      const startJS = performance.now();
+      convertToGrayscaleJS(inputDataJS);
+      const endJS = performance.now();
+      timeJS = endJS - startJS;
+    }
+
+    setBenchmark({ wasm: timeWasm, js: timeJS });
+
+    const newImageData = new ImageData(new Uint8ClampedArray(inputDataWasm.buffer), width, height);
     ctx.putImageData(newImageData, 0, 0);
   };
 
-  // 画像をダウンロードする処理
   const handleDownload = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -104,6 +136,39 @@ function App() {
             ref={canvasRef}
             className="border border-gray-500 max-w-full h-auto rounded-md mx-auto"
           />
+
+          {benchmark && (
+            <div className="mt-6 p-4 bg-gray-900 rounded-lg border border-gray-700 text-left w-full max-w-md mx-auto">
+              <h3 className="text-lg font-bold mb-3 text-indigo-400 border-b border-gray-700 pb-2">
+                ⚡ Speed Test Result
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-800 p-3 rounded border border-indigo-500/50">
+                  <p className="text-xs text-gray-400 mb-1">Rust (Wasm)</p>
+                  <p className="text-2xl font-mono text-indigo-300 font-bold">
+                    {benchmark.wasm.toFixed(2)} <span className="text-sm font-normal">ms</span>
+                  </p>
+                </div>
+                {filterType === 'grayscale' && (
+                  <div className="bg-gray-800 p-3 rounded border border-gray-600">
+                    <p className="text-xs text-gray-400 mb-1">JavaScript</p>
+                    <p className="text-2xl font-mono text-gray-300 font-bold">
+                      {benchmark.js.toFixed(2)} <span className="text-sm font-normal">ms</span>
+                    </p>
+                  </div>
+                )}
+              </div>
+              {filterType === 'grayscale' && benchmark.js > 0 && (
+                <p className="mt-3 text-sm text-center text-gray-400">
+                  Wasm is{' '}
+                  <span className="text-emerald-400 font-bold text-lg">
+                    {(benchmark.js / benchmark.wasm).toFixed(1)}x
+                  </span>{' '}
+                  faster!
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="mt-4 flex justify-center gap-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
             <label className="flex items-center gap-2 cursor-pointer hover:text-indigo-400 transition-colors">
