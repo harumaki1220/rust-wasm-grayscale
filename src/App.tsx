@@ -21,6 +21,7 @@ function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [filterType, setFilterType] = useState<'grayscale' | 'invert' | 'sepia'>('grayscale');
   const [benchmark, setBenchmark] = useState<{ wasm: number; js: number } | null>(null);
+  const [files, setFiles] = useState([]);
 
   // WASMの読み込み
   useEffect(() => {
@@ -28,16 +29,12 @@ function App() {
     console.log('WASM Initialized');
   }, []);
 
-  // 画像が選択されたときの処理
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    const file = files[0];
+  const loadFileToCanvas = (file: File) => {
     const reader = new FileReader();
 
     reader.onload = (evt) => {
       const img = new Image();
+
       img.onload = () => {
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -55,6 +52,26 @@ function App() {
       }
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      loadFileToCanvas(files[0]);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      loadFileToCanvas(files[0]);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
   };
 
   const handleConvert = () => {
@@ -117,7 +134,11 @@ function App() {
       <header className="flex flex-col gap-6">
         <h1 className="text-4xl font-bold">Rust Wasm Grayscale Converter</h1>
 
-        <div className="p-8 border border-gray-600 rounded-xl bg-gray-800 shadow-lg">
+        <div
+          className="p-8 border border-gray-600 rounded-xl bg-gray-800 shadow-lg transition-colors hover:border-indigo-500"
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+        >
           <div className="mb-6">
             <input
               type="file"
@@ -203,7 +224,7 @@ function App() {
             </label>
           </div>
 
-          <div className="mt-6">
+          <div className="mt-6 flex justify-center gap-4">
             <Button onClick={handleConvert}>フィルターを適用</Button>
             <button
               onClick={handleDownload}
