@@ -115,7 +115,7 @@ function App() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center text-center bg-gray-900 text-white">
       <header className="flex flex-col gap-6">
-        <h1 className="text-4xl font-bold">Rust WASM Grayscale Converter</h1>
+        <h1 className="text-4xl font-bold">Rust Wasm Grayscale Converter</h1>
 
         <div className="p-8 border border-gray-600 rounded-xl bg-gray-800 shadow-lg">
           <div className="mb-6">
